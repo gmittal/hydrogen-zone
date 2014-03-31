@@ -33,22 +33,65 @@
         topBorder.position = ccp(screenSize.width/2, screenSize.height - 23);
         [self addChild:topBorder z:10000];
         
+        bottomBorder = [CCSprite spriteWithFile:@"border.png"];
+        bottomBorder.position = ccp(screenSize.width/2, 23);
+        [self addChild:bottomBorder z:10000];
         
         
+        timeLeft = 0;
+        timeString = [NSString stringWithFormat:@"1:0%i", timeLeft];
+        timeLabel = [CCLabelTTF labelWithString:timeString fontName:@"HelveticaNeue-UltraLight" fontSize:30];
+        timeLabel.position = ccp(screenSize.width/2, topBorder.position.y);
+        timeLabel.color = ccc3(12, 24, 43);
+        [self addChild:timeLabel z:10001];
+        
+        timeLeft = 60;
+        
+        [self startTimer];
         [self scheduleUpdate];
+        
 	}
 
 	return self;
 }
 
 
+
+
+-(void) startTimer {
+    [self schedule: @selector(tick:) interval:1.0];
+    
+}
+
+-(void) tick: (ccTime) dt {
+    if (timeLeft == 60) {
+        timeString = @"1:00";
+    } else if (timeLeft < 60 && timeLeft > 10) {
+        timeString = [NSString stringWithFormat:@"0:%i", timeLeft];
+    } else if (timeLeft < 10) {
+        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
+    } else if (timeLeft == 0) {
+        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
+    }
+    
+    [timeLabel setString:timeString];
+    
+    
+    if (timeLeft <= 0) {
+        timeLeft = 0;
+    } else {
+        timeLeft--;
+    }
+}
+
+
+
+
+
 -(void) movePlayerPos: (CGPoint) rot_pos1 rot_pos2:(CGPoint) rot_pos2
 {
     float touchangle;
-    
     float rotation_theta = atan((rot_pos1.y-rot_pos2.y)/(rot_pos1.x-rot_pos2.x)) * 180 / M_PI;
-    
-    //        float rotation;
     
     if(rot_pos1.y - rot_pos2.y > 0)
     {
@@ -78,11 +121,6 @@
         touchangle+=360;
     }
     
-    
-    
-    
-    //        NSLog(@"%f", touchangle);
-    
     float speed = 5; // Move 50 pixels in 60 frames (1 second)
     
     float vx = cos(touchangle * M_PI / 180) * speed;
@@ -90,18 +128,12 @@
     
     CGPoint direction = ccp(vy,vx);
     
-    // NSLog(NSStringFromCGPoint(direction));
-    
-//    if(deathanimation == true)
-//    {
-    
-        player.position = ccpAdd(player.position, direction);
-        
-//    }
-    
+    player.position = ccpAdd(player.position, direction);
     player.rotation = touchangle;
     
 }
+
+
 
 
 -(void) playerTouchInput {

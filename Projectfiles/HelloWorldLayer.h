@@ -16,10 +16,13 @@
     NSMutableArray *oxygen;
     NSMutableArray *halogens;
     
-    NSString *scoreString;
-    CCLabelTTF *scoreLabel;
+    NSString *timeString;
+    CCLabelTTF *timeLabel;
     
     CCSprite *topBorder;
+    CCSprite *bottomBorder;
+    
+    int timeLeft;
     
 }
 
