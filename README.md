@@ -1,2 +1,3 @@
-hydrogen-zone
+Hydrogen-Zone
 =============
+A game about Hydrogen, Oxygen, and Halogens...
