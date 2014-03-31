@@ -5,6 +5,8 @@
  * Released under MIT License in Germany (LICENSE-Kobold2D.txt).
  */
 
+// Hydrozone by Gautam Mitta
+
 #import "HelloWorldLayer.h"
 
 @interface HelloWorldLayer (PrivateMethods)
