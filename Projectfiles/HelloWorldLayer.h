@@ -6,6 +6,8 @@
  */
 
 #import "kobold2d.h"
+#define ARC4RANDOM_MAX      0x100000000
+
 
 @interface HelloWorldLayer : CCLayer
 {
@@ -13,8 +15,9 @@
     CGSize screenSize;
     CCSprite *player;
     
-    NSMutableArray *oxygen;
-    NSMutableArray *halogens;
+    CGPoint screenCenter;
+    
+    NSMutableArray *atoms;
     
     NSString *timeString;
     CCLabelTTF *timeLabel;
@@ -24,6 +27,13 @@
     
     int timeLeft;
     
+    float playerScale;
+    
+    CCMenu *pauseMenu;
+    CCMenuItemImage *pause;
+    
 }
+
+-(void) pause;
 
 @end

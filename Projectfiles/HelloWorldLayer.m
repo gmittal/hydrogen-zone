@@ -21,11 +21,13 @@
         director = [CCDirector sharedDirector];
         
         screenSize = [director screenSize];
+        screenCenter = [director screenCenter];
         
+        playerScale = 0.5f; // important, very very important
 
 		player = [CCSprite spriteWithFile:@"hydrogen.png"];
         player.position = ccp(screenSize.width/2, screenSize.height/2);
-        player.scale = 0.5f;
+        player.scale = playerScale;
         [self addChild:player];
         
         
@@ -37,15 +39,28 @@
         bottomBorder.position = ccp(screenSize.width/2, 23);
         [self addChild:bottomBorder z:10000];
         
+        pause = [CCMenuItemImage itemWithNormalImage:@"pause.png" selectedImage:@"pauseSel.png" target:self selector:@selector(pause)];
+        pause.scale = 0.4f;
+        pauseMenu = [CCMenu menuWithItems:pause, nil];
+        pauseMenu.position = ccp(screenSize.width - 23, screenSize.height - 23);
+        [self addChild:pauseMenu z:10001];
+        
         
         timeLeft = 0;
-        timeString = [NSString stringWithFormat:@"1:0%i", timeLeft];
+        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
         timeLabel = [CCLabelTTF labelWithString:timeString fontName:@"HelveticaNeue-UltraLight" fontSize:30];
         timeLabel.position = ccp(screenSize.width/2, topBorder.position.y);
         timeLabel.color = ccc3(12, 24, 43);
         [self addChild:timeLabel z:10001];
         
-        timeLeft = 60;
+        timeLeft = 131;
+        
+        
+        
+        
+        // initialize various arrays
+        [self initAtoms:10]; // specify how many atoms
+        
         
         [self startTimer];
         [self scheduleUpdate];
@@ -56,6 +71,58 @@
 }
 
 
+-(int) generateRandNumberFrom:(int) fromNumber to:(int)toNumber {
+    return (arc4random()%(toNumber-fromNumber+1))+fromNumber;
+}
+
+
+-(void) initAtoms:(int) numAtoms {
+    atoms = [[NSMutableArray alloc] init];
+    
+    
+    // simply generates
+    for (int i = 0; i < numAtoms; i++) {
+        double type = ((double)arc4random() / ARC4RANDOM_MAX);
+        int atomType = 0;
+        if (type < 0.75f) {
+            atomType = 0; // OXYGEN! YAY!
+        } else if (type > 0.75f) {
+            atomType = 1; // HALOGEN! OH NO!
+        }
+        
+        CCSprite *tmp;
+        
+        if (atomType == 0) {
+            tmp = [CCSprite spriteWithFile:@"oxygen.png"];
+            tmp.tag = atomType;
+            
+        } else if (atomType == 1) {
+            tmp = [CCSprite spriteWithFile:@"halogen.png"];
+            tmp.tag = atomType;
+            
+        }
+        
+        double scale = ((double)arc4random() / ARC4RANDOM_MAX);
+
+        if (scale > 0.95f) {
+            scale -= 0.5f;
+        }
+        
+        if (scale < 0.1) {
+            scale += 0.1;
+        }
+        
+        tmp.scale = scale;
+        
+        tmp.position = screenCenter;
+        
+        
+        [atoms addObject:tmp];
+        [self addChild:tmp];
+        
+    }
+}
+
 
 
 -(void) startTimer {
@@ -64,16 +131,24 @@
 }
 
 -(void) tick: (ccTime) dt {
-    if (timeLeft == 60) {
-        timeString = @"1:00";
-    } else if (timeLeft < 60 && timeLeft > 10) {
-        timeString = [NSString stringWithFormat:@"0:%i", timeLeft];
-    } else if (timeLeft < 10) {
-        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
-    } else if (timeLeft == 0) {
-        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
-    }
+//    if (timeLeft == 60) {
+//        timeString = @"1:00";
+//    } else if (timeLeft < 60 && timeLeft > 10) {
+//        timeString = [NSString stringWithFormat:@"0:%i", timeLeft];
+//    } else if (timeLeft < 10) {
+//        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
+//    } else if (timeLeft == 0) {
+//        timeString = [NSString stringWithFormat:@"0:0%i", timeLeft];
+//    }
     
+    int minutes = timeLeft / 60;
+    int seconds = timeLeft % 60;
+    
+    if (seconds >= 10) {
+        timeString = [NSString stringWithFormat:@"%i:%i", minutes, seconds];
+    } else {
+        timeString = [NSString stringWithFormat:@"%i:0%i", minutes, seconds];
+    }
     [timeLabel setString:timeString];
     
     
@@ -163,6 +238,12 @@
     }
 
 }
+
+
+-(void) pause {
+    
+}
+
 
 
 -(void) update:(ccTime)delta
