@@ -55,7 +55,7 @@
         timeLabel.color = ccc3(12, 24, 43);
         [self addChild:timeLabel z:10001];
         
-        timeLeft = 90;
+        timeLeft = 10;
         
         
         
@@ -197,8 +197,33 @@
     
     if (timeLeft <= 0) {
         timeLeft = 0;
+        UIAlertView *alert;
+        alert = [[UIAlertView alloc] init];
+        [alert setTitle:@"Time's Up!"];
+        [alert setMessage:@"Katamari Damaci"];
+        [alert setDelegate:self];
+        [alert addButtonWithTitle:@"OK"];
+        [alert show];
+        
+        // STOP EVERYTHING
+        [self unschedule:@selector(tick:)];
+        [self unscheduleUpdate];
+        [self stopAtomActions];
+        
+    
     } else {
         timeLeft--;
+    }
+}
+
+-(void) stopAtomActions {
+    for (int i = 0; i < [atoms count]; i++) {
+        CCSprite *tmp = [atoms objectAtIndex:i];
+        [tmp stopAllActions];
+        [self removeChild:tmp cleanup:YES];
+        [atoms removeObjectAtIndex:i];
+        
+        
     }
 }
 
