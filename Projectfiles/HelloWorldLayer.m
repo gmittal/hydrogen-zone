@@ -55,13 +55,23 @@
         timeLabel.color = ccc3(12, 24, 43);
         [self addChild:timeLabel z:10001];
         
-        timeLeft = 10;
+        timeLeft = 90;
         
         
+        score = [self calculateScore:player.scale];
+        scoreString = [NSString stringWithFormat:@"%iK", score];
+        scoreLabel = [CCLabelTTF labelWithString:scoreString fontName:@"HelveticaNeue-UltraLight" fontSize:30];
+        scoreLabel.position = ccp(screenSize.width/2, bottomBorder.position.y);
+        scoreLabel.color = ccc3(12, 24, 43);
+        [self addChild:scoreLabel z:10001];
         
         
         // initialize various arrays
-        [self initAtoms:15]; // specify how many atoms to start with, and they'll automatically regenerate themselves!
+        atoms = [[NSMutableArray alloc] init];
+        
+        atomRateTarget = 20;
+        
+        [self initAtoms:atomRateTarget]; // specify how many atoms to start with, and they'll automatically regenerate themselves!
         
         
         [self startTimer];
@@ -94,11 +104,13 @@
 }
 
 
+-(int) calculateScore:(float) scale {
+    return scale * 1000;
+}
+
 
 
 -(void) initAtoms:(int) numAtoms {
-    atoms = [[NSMutableArray alloc] init];
-    
     
     // simply generates
     for (int i = 0; i < numAtoms; i++) {
@@ -163,8 +175,81 @@
 {
     [self removeChild:tmpSprite cleanup:YES];
     [atoms removeObject:tmpSprite];
-    [self initAtoms:1];
+    if ([atoms count] < atomRateTarget) {
+        [self initAtoms:1];
+    }
 }
+
+
+
+
+
+
+
+-(void) circleCollisionWith:(NSMutableArray *) circle2
+{
+    //    [self updateCollisionCounter];
+    
+    for(NSUInteger i = 0; i < [circle2 count]; i++)
+    {
+        double playerWidth = [player boundingBox].size.width;
+        CCSprite* tempSprite = [circle2 objectAtIndex:i];
+        float c1radius = (playerWidth/2) - 3;
+       
+        float c2radius = [tempSprite boundingBox].size.width/2; // circle 2 radius
+     
+        float radii = c1radius + c2radius;
+        float distX = player.position.x - tempSprite.position.x;
+        float distY = player.position.y - tempSprite.position.y;
+        float distance = sqrtf((distX * distX) + (distY * distY));
+        
+        
+        if (distance <= radii) { // did the two circles collide at all??
+            
+            float ratio = distY/distance; // ratio of distance in terms of Y to distance from player
+            float shipAngleRadians = asin(ratio); // arcsin of ratio
+            float antiShipAngle = CC_RADIANS_TO_DEGREES(shipAngleRadians) * (-1); // convert to degrees from radians
+
+            if (tempSprite.tag == 0) {
+                // it's oxygen, yay
+                if (tempSprite.scale < player.scale) {
+                    player.scale += 0.01;
+                } else if (tempSprite.scale > player.scale) {
+                    NSLog(@"YOU DIE");
+                }
+            }
+            
+            if (tempSprite.tag == 1) {
+                NSLog(@"YOU DIE");
+            }
+            
+            id dock = [CCScaleTo actionWithDuration:0.1f scale:0];
+            id removeSprite = [CCCallFuncN actionWithTarget:self selector:@selector(removeArraySprite:)];
+            [tempSprite runAction:[CCSequence actions:dock, removeSprite, nil]];
+            
+            
+            
+            
+        }
+        
+    }
+}
+
+
+
+
+-(void) removeArraySprite:(id)sender
+{
+    [self removeChild:sender cleanup:YES];
+    [atoms removeObject:sender];
+    [self initAtoms:1];
+    
+    
+}
+
+
+
+
 
 
 #pragma mark Timer Functions
@@ -263,7 +348,7 @@
         touchangle+=360;
     }
     
-    float speed = 5; // Move 50 pixels in 60 frames (1 second)
+    float speed = 10; // Move 50 pixels in 60 frames (1 second)
     
     float vx = cos(touchangle * M_PI / 180) * speed;
     float vy = sin(touchangle * M_PI / 180) * speed;
@@ -342,10 +427,16 @@
         CGPoint newpos = posTouchScreen;
         CGPoint oldpos = [player position];
         
+        
+        if (player.scale <= 0) {
+            player.scale = 0;
+        } else if (!CGPointEqualToPoint([player position], posTouchScreen)) {
+            player.scale -= player.scale/500;
+        }
+        
         if(newpos.x - oldpos.x > 5 || newpos.x - oldpos.x < -5 || newpos.y - oldpos.y > 5 || newpos.y - oldpos.y < -5)
         {
             [self movePlayerPos:rot_pos1 rot_pos2:rot_pos2];
-            //NSLog(@"Ohai.");
             
         }
         
@@ -363,6 +454,8 @@
 -(void) update:(ccTime)delta
 {
     [self playerTouchInput];
+    [self circleCollisionWith:atoms];
+    NSLog(@"Atoms: %i", [atoms count]);
     
 }
 

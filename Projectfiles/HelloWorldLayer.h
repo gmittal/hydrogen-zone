@@ -32,6 +32,12 @@
     CCMenu *pauseMenu;
     CCMenuItemImage *pause;
     
+    int atomRateTarget;
+    
+    int score;
+    NSString *scoreString;
+    CCLabelTTF *scoreLabel;
+    
 }
 
 -(void) pause;
